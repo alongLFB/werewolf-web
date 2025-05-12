@@ -1,103 +1,95 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { createClient } from "@/utils/supabase/client";
+import type { User } from '@supabase/supabase-js';
 import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
-export default function Home() {
+const supabase = createClient();
+
+export default function HomePage() {
+  const [user, setUser] = useState<User | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+    });
+  }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push("/login");
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="min-h-screen bg-gray-100 flex flex-col">
+      {/* 顶部栏 */}
+      <header className="flex items-center justify-between px-4 py-3 bg-white shadow">
+        <div className="flex items-center gap-2">
+          <Image src="/werewolf-title.png" alt="狼人杀" width={40} height={40} className="rounded" />
+          <span className="text-xl font-bold">线下狼人杀</span>
+        </div>
+        <div className="relative">
+          <button
+            className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center"
+            onClick={() => setMenuOpen((v) => !v)}
           >
+            <span className="sr-only">个人中心</span>
             <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+              src="/avatar-default.png"
+              alt="avatar"
+              width={32}
+              height={32}
+              className="rounded-full"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          </button>
+          {menuOpen && (
+            <div className="absolute right-0 mt-2 w-40 bg-white rounded shadow-lg z-10">
+              <Link
+                href="/profile"
+                className="block px-4 py-2 hover:bg-gray-100 text-sm"
+                onClick={() => setMenuOpen(false)}
+              >
+                个人资料
+              </Link>
+              <button
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                onClick={handleSignOut}
+              >
+                退出登录
+              </button>
+            </div>
+          )}
+        </div>
+      </header>
+
+      {/* 主体内容 */}
+      <main className="flex flex-col items-center justify-center flex-1 px-4">
+        <Image
+          src="/werewolf-banner.png"
+          alt="狼人杀 Banner"
+          width={240}
+          height={120}
+          className="my-8 rounded-lg shadow"
+        />
+        <h1 className="text-2xl font-bold mb-2">
+          欢迎，{user?.user_metadata?.nickname || '用户'}！
+        </h1>
+        <p className="mb-8 text-gray-600">邮箱：{user?.email}</p>
+        <div className="flex gap-4">
+          <Link href="/join-room">
+            <Button className="px-8 py-2 text-base">加入房间</Button>
+          </Link>
+          <Link href="/create-room">
+            <Button variant="outline" className="px-8 py-2 text-base">创建房间</Button>
+          </Link>
         </div>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }
