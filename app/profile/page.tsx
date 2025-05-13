@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/utils/supabase/client";
+import { ArrowLeft } from "lucide-react";
 
 const supabase = createClient();
 
@@ -72,7 +73,14 @@ export default function ProfilePage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
       <Card className="w-full max-w-sm rounded-lg bg-white shadow-lg">
-        <CardHeader>
+        <CardHeader className="relative">
+          <button
+            className="absolute left-2 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-black"
+            onClick={() => router.push("/")}
+            aria-label="返回首页"
+          >
+            <ArrowLeft size={26} />
+          </button>
           <CardTitle className="text-center text-2xl font-bold">
             个人资料
           </CardTitle>
@@ -86,7 +94,7 @@ export default function ProfilePage() {
                   <>
                     <Input
                       value={nicknameInput}
-                      onChange={e => setNicknameInput(e.target.value)}
+                      onChange={(e) => setNicknameInput(e.target.value)}
                       className="text-base"
                       disabled={nicknameLoading}
                     />
@@ -142,7 +150,7 @@ export default function ProfilePage() {
                   className="text-base pr-12"
                   autoComplete="new-password"
                   value={newPassword}
-                  onChange={e => setNewPassword(e.target.value)}
+                  onChange={(e) => setNewPassword(e.target.value)}
                   disabled={loading}
                 />
                 <button
