@@ -5,9 +5,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { createClient } from "@/utils/supabase/client";
+import { createBrowserSupabaseClient } from "@/utils/supabase/client";
 
-const supabase = createClient();
+const supabase = createBrowserSupabaseClient();
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");

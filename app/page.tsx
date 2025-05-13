@@ -1,14 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createClient } from "@/utils/supabase/client";
+import { createBrowserSupabaseClient } from "@/utils/supabase/client";
 import type { User } from '@supabase/supabase-js';
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
-const supabase = createClient();
+const supabase = createBrowserSupabaseClient();
 
 export default function HomePage() {
   const [user, setUser] = useState<User | null>(null);

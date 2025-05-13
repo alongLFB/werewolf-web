@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { User } from "@supabase/supabase-js";
-import { createClient } from "@/utils/supabase/client";
+import { createBrowserSupabaseClient } from "@/utils/supabase/client";
 import { ArrowLeft } from "lucide-react";
 
-const supabase = createClient();
+const supabase = createBrowserSupabaseClient();
 
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
