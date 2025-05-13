@@ -73,14 +73,16 @@ export default function HomePage() {
         <Image
           src="/werewolf-banner.png"
           alt="狼人杀 Banner"
-          width={240}
-          height={120}
+          width={256}
+          height={256}
           className="my-8 rounded-lg shadow"
         />
         <h1 className="text-2xl font-bold mb-2">
           欢迎，{user?.user_metadata?.nickname || '用户'}！
         </h1>
-        <p className="mb-8 text-gray-600">邮箱：{user?.email}</p>
+        {/* <p className="mb-8 text-gray-600">邮箱：{user?.email}</p> */}
+        <br></br>
+        {/* 房间操作按钮 */}
         <div className="flex gap-4">
           <Link href="/join-room">
             <Button className="px-8 py-2 text-base">加入房间</Button>
