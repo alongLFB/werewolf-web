@@ -98,7 +98,7 @@ export default function RoomPage() {
 
       const { data: playersData, error: playersError } = await supabase
         .from("room_players")
-        .select("*, profile:profiles ( nickname: string )")
+        .select("*, profile:profiles (nickname)") // You are already fetching the profile nickname
         .eq("room_id", roomId)
         .order("seat_number");
 
@@ -107,12 +107,12 @@ export default function RoomPage() {
       }
 
       const formattedPlayers = playersData.map(
-        (p: Player) =>
+        (p: any) => // Changed type of p to any, as it's raw data from the query
           ({
             // Explicitly map all fields from Player interface
             id: p.user_id,
             user_id: p.user_id,
-            nickname: p.nickname || `玩家${p.seat_number || "未知"}`,
+            nickname: p.profile.nickname || `玩家${p.seat_number || "未知"}`, // Use profile.nickname here
             seat_number: p.seat_number,
             role: p.role,
             is_alive: p.is_alive,
