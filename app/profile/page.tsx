@@ -16,6 +16,7 @@ export default function ProfilePage() {
   const [nickname, setNickname] = useState("");
   const [editingNickname, setEditingNickname] = useState(false);
   const [nicknameInput, setNicknameInput] = useState("");
+  const [profileEmail, setProfileEmail] = useState(""); // State for email from profiles
   const [showPassword, setShowPassword] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [message, setMessage] = useState("");
@@ -26,12 +27,62 @@ export default function ProfilePage() {
   const router = useRouter();
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
-      setNickname(data.user?.user_metadata?.nickname || "WereWolf");
-      setNicknameInput(data.user?.user_metadata?.nickname || "WereWolf");
-    });
-  }, []);
+    const fetchUserDataAndProfile = async () => {
+      setLoading(true);
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+
+      if (authError || !authData.user) {
+        setError("用户未登录或获取失败，请重新登录。");
+        setLoading(false);
+        router.push("/login");
+        return;
+      }
+
+      const currentUser = authData.user;
+      setUser(currentUser);
+
+      // Set default/fallback values from auth metadata or hardcoded defaults
+      let displayNickname = currentUser.user_metadata?.nickname || "WereWolf";
+      let displayEmail = currentUser.email || ""; // Fallback to auth email
+
+      // Fetch profile from 'profiles' table
+      // Assumes 'id' in 'profiles' table is the foreign key to 'auth.users.id'
+      // Assumes 'profiles' table has 'nickname' and 'email' columns
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('nickname, email') // Select nickname and email
+        .eq('id', currentUser.id)   // Filter by current user's ID
+        .single();                   // Expect a single record or null
+
+      if (profileError && profileError.code !== 'PGRST116') { 
+        // PGRST116 means no rows found, which is acceptable if a profile hasn't been created yet.
+        console.warn("获取个人资料失败: ", profileError.message);
+        // setError("获取个人资料失败: " + profileError.message); // Optionally set error state
+      } else if (profileData) {
+        // If profile data exists and is not null, use it
+        displayNickname = profileData.nickname || displayNickname;
+        displayEmail = profileData.email || displayEmail; // Use 'email' from profiles
+      }
+      
+      setNickname(displayNickname);
+      setNicknameInput(displayNickname);
+      setProfileEmail(displayEmail); // Set the email to be displayed
+      setLoading(false);
+    };
+
+    fetchUserDataAndProfile();
+    
+    // The following lines from your original code are removed as their logic is now integrated above:
+    // supabase.auth.getUser().then(({ data }) => {
+    //   setUser(data.user);
+    //   setNickname(data.user?.user_metadata?.nickname || "WereWolf");
+    //   setNicknameInput(data.user?.user_metadata?.nickname || "WereWolf");
+    // });
+    // const { data: profiles, error } = await supabase // This was incorrect
+    // .from('profiles')
+    // .select('*')
+        
+  }, [router]);
 
   // 修改密码
   const handlePasswordChange = async (e: React.FormEvent) => {
@@ -53,15 +104,39 @@ export default function ProfilePage() {
 
   // 修改昵称
   const handleNicknameSave = async () => {
+    if (!user) {
+      setError("用户未找到，无法修改昵称。");
+      return;
+    }
     setNicknameLoading(true);
     setNicknameMsg("");
     setError("");
-    const { error } = await supabase.auth.updateUser({
+
+    // Update nickname in the 'profiles' table
+    const { error: profileUpdateError } = await supabase
+      .from('profiles')
+      .update({ nickname: nicknameInput })
+      .eq('id', user.id);
+
+    if (profileUpdateError) {
+      setError("修改昵称失败（数据库）: " + profileUpdateError.message);
+      setNicknameLoading(false);
+      return;
+    }
+
+    // Optionally, also update auth user metadata for consistency
+    const { error: authUpdateError } = await supabase.auth.updateUser({
       data: { nickname: nicknameInput },
     });
+
     setNicknameLoading(false);
-    if (error) {
-      setError(error.message);
+    if (authUpdateError) {
+      // Log or handle auth update error, but profile was updated.
+      console.warn("昵称已在数据库更新，但同步至认证服务失败: " + authUpdateError.message);
+      setNickname(nicknameInput);
+      setEditingNickname(false);
+      setNicknameMsg("昵称修改成功！（认证信息同步可能稍有延迟）");
+      setTimeout(() => setNicknameMsg(""), 3000);
     } else {
       setNickname(nicknameInput);
       setEditingNickname(false);
@@ -136,7 +211,7 @@ export default function ProfilePage() {
             </div>
             <div>
               <label className="block mb-1 text-sm font-medium">邮箱</label>
-              <h1 className="text-2xl font-bold mb-2">{user?.email}</h1>
+              <h1 className="text-2xl font-bold mb-2">{profileEmail}</h1> {/* Use profileEmail state here */}
             </div>
             <form className="space-y-4" onSubmit={handlePasswordChange}>
               <label className="block mb-1 text-sm font-medium">修改密码</label>
