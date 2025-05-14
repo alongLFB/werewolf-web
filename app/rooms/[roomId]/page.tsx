@@ -50,7 +50,7 @@ export default function RoomPage() {
   // const [myPlayerInfo, setMyPlayerInfo] = useState<Player | null>(null); // REMOVED: Will be derived
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [gameLog, setGameLog] = useState<string[]>([]);
+  // const [gameLog, setGameLog] = useState<string[]>([]);
   const [nightActions, setNightActions] = useState<NightActions>({});
   const [roomChannel, setRoomChannel] = useState<RealtimeChannel | null>(null);
 
@@ -98,7 +98,7 @@ export default function RoomPage() {
 
       const { data: playersData, error: playersError } = await supabase
         .from("room_players")
-        .select("*, profile:profiles ( nickname )")
+        .select("*, profile:profiles ( nickname: string )")
         .eq("room_id", roomId)
         .order("seat_number");
 
@@ -107,15 +107,12 @@ export default function RoomPage() {
       }
 
       const formattedPlayers = playersData.map(
-        (p: any) =>
+        (p: Player) =>
           ({
             // Explicitly map all fields from Player interface
             id: p.user_id,
             user_id: p.user_id,
-            nickname:
-              (p.profile as any)?.nickname ||
-              p.nickname ||
-              `玩家${p.seat_number || "未知"}`,
+            nickname: p.nickname || `玩家${p.seat_number || "未知"}`,
             seat_number: p.seat_number,
             role: p.role,
             is_alive: p.is_alive,
@@ -136,9 +133,11 @@ export default function RoomPage() {
           "Current user not found in player list after initial fetch, but room is active."
         );
       }
-    } catch (err: any) {
-      console.error("Error fetching initial room data:", err);
-      setError(err.message);
+    } catch (error: unknown) {
+      console.error("Error fetching initial room data:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Error selecting seat";
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -190,7 +189,7 @@ export default function RoomPage() {
           const { eventType, new: newRecord, old: oldRecord } = payload;
 
           if (eventType === "INSERT") {
-            const newPlayerRaw = newRecord as any;
+            const newPlayerRaw = newRecord as Player;
             const { data: profileData } = await supabase
               .from("profiles")
               .select("nickname")
@@ -216,7 +215,7 @@ export default function RoomPage() {
               )
             );
           } else if (eventType === "UPDATE") {
-            const updatedPlayerRaw = newRecord as any;
+            const updatedPlayerRaw = newRecord as Player;
             setPlayers((prev) =>
               prev
                 .map((p) => {
@@ -232,7 +231,7 @@ export default function RoomPage() {
                 .sort((a, b) => (a.seat_number || 999) - (b.seat_number || 999))
             );
           } else if (eventType === "DELETE") {
-            const deletedPlayerRaw = oldRecord as any;
+            const deletedPlayerRaw = oldRecord as Player;
             setPlayers((prev) =>
               prev.filter((p) => p.user_id !== deletedPlayerRaw.user_id)
             );
@@ -253,14 +252,47 @@ export default function RoomPage() {
           // setGameLog(prev => [...prev, formatGameAction(action)]);
         }
       )
+      // ... 在 useEffect 用于 Realtime 订阅的回调中 for 'room_players' ...
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE", // 可以更精确地只监听 UPDATE，或用 *
+          schema: "public",
+          table: "room_players",
+          filter: `room_id=eq.${roomId}`,
+        },
+        (payload) => {
+          console.log("Realtime: Room players UPDATE received!", payload);
+          const updatedPlayerRaw = payload.new as Player;
+
+          // 更新 players 列表
+          setPlayers((prevPlayers) =>
+            prevPlayers
+              .map((p) =>
+                p.user_id === updatedPlayerRaw.user_id
+                  ? {
+                      ...p,
+                      ...updatedPlayerRaw,
+                      id: updatedPlayerRaw.user_id,
+                      nickname: p.nickname,
+                    }
+                  : p
+              )
+              .sort((a, b) => (a.seat_number || 99) - (b.seat_number || 99))
+          );
+        }
+      )
+      // 同时，`game_rooms` 表的 Realtime 回调会更新 roomDetails.status 为 'in_game_night'
+      // 这会触发UI切换到夜晚阶段的渲染。
       .on("broadcast", { event: "turn_change" }, (payload) => {
         console.log("Turn change event:", payload);
       })
       .on(
         "broadcast",
-        { event: "night_action_result", for_user: currentUser.id }, // Use currentUser.id directly
+        { event: "night_action_result" }, // Use currentUser.id directly
         (payload) => {
           console.log("Private night action result:", payload);
+          if (payload.payload.for_user !== currentUser.id) return;
           if (payload.payload.type === "seer_result") {
             // Supabase wraps broadcast payloads in a 'payload' object
             setNightActions((prev) => ({
@@ -355,9 +387,11 @@ export default function RoomPage() {
           if (updateError) throw updateError;
         }
         // Realtime will handle UI updates by updating `players` list
-      } catch (err: any) {
-        console.error("Error selecting seat:", err);
-        alert(`选座失败: ${err.message}`);
+      } catch (error: unknown) {
+        console.error("Error selecting seat:", error);
+        const errorMessage =
+          error instanceof Error ? error.message : "Error selecting seat";
+        alert(`选座失败: ${errorMessage}`);
       }
     },
     [currentUser, roomDetails, roomId, supabase, myPlayerInfo]
@@ -391,9 +425,11 @@ export default function RoomPage() {
       if (error) throw error;
       // Realtime will update the `players` list, which will update `myPlayerInfo`,
       // and then the UI will re-render with the new ready state.
-    } catch (err: any) {
-      console.error("Error setting ready state:", err);
-      alert(`更新准备状态失败: ${err.message}`);
+    } catch (error: unknown) {
+      console.error("Error setting ready state:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Error setting ready state";
+      alert(`更新准备状态失败: ${errorMessage}`);
     }
   }, [myPlayerInfo, roomDetails, supabase, roomId, currentUser]);
 
@@ -431,9 +467,11 @@ export default function RoomPage() {
         throw new Error(result.message || "Failed to start game");
 
       console.log("开始游戏请求成功，等待 Realtime 更新UI...");
-    } catch (err: any) {
-      console.error("Error starting game:", err);
-      alert(`开始游戏失败: ${err.message}`);
+    } catch (error: unknown) {
+      console.error("Error starting game:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Error starting game";
+      alert(`开始游戏失败: ${errorMessage}`);
     }
   }, [currentUser, roomDetails, roomId, players]); // Added players dependency
 
@@ -465,9 +503,11 @@ export default function RoomPage() {
         }
       }
       // Realtime should update players list, then myPlayerInfo
-    } catch (err: any) {
-      console.error("Error joining room:", err);
-      alert(`加入房间失败: ${err.message}`);
+    } catch (error: unknown) {
+      console.error("Error joining room:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Error starting game";
+      alert(`加入房间失败: ${errorMessage}`);
     }
   }, [
     currentUser,
