@@ -347,6 +347,62 @@ export default function RoomPage() {
     }
   }, [roomChannel, currentUser, myPlayerInfo]); // Add myPlayerInfo if its properties are used in track
 
+  const handleLeaveRoom = useCallback(async () => {
+    if (!currentUser || !roomDetails) {
+      alert("无法获取用户信息或房间信息。");
+      return;
+    }
+
+    const isHost = currentUser.id === roomDetails.host_user_id;
+
+    if (isHost) {
+      if (
+        window.confirm(
+          "您是房主，退出房间将会关闭该房间。确定要退出并关闭房间吗？"
+        )
+      ) {
+        try {
+          // Update room status to 'closed'
+          const { error: updateRoomError } = await supabase
+            .from("game_rooms")
+            .update({ status: "closed" }) // You might want a specific 'closed_by_host' status
+            .eq("id", roomId);
+
+          if (updateRoomError) {
+            throw updateRoomError;
+          }
+          // Optionally, you could also remove all players from room_players here
+          // or handle it via a database trigger or backend function when room status changes.
+          alert("房间已关闭。");
+          router.push("/");
+        } catch (error: any) {
+          console.error("Error closing room:", error);
+          alert(`关闭房间失败: ${error.message}`);
+        }
+      }
+    } else {
+      // Non-host player leaving
+      if (window.confirm("确定要退出当前房间吗？")) {
+        try {
+          const { error: deletePlayerError } = await supabase
+            .from("room_players")
+            .delete()
+            .eq("room_id", roomId)
+            .eq("user_id", currentUser.id);
+
+          if (deletePlayerError) {
+            throw deletePlayerError;
+          }
+          alert("您已退出房间。");
+          router.push("/");
+        } catch (error: any) {
+          console.error("Error leaving room:", error);
+          alert(`退出房间失败: ${error.message}`);
+        }
+      }
+    }
+  }, [currentUser, roomDetails, roomId, supabase, router]);
+
   const handleSelectSeat = useCallback(
     async (seatNumber: number) => {
       // myPlayerInfo here will be the derived one, so it's up-to-date.
@@ -784,38 +840,46 @@ export default function RoomPage() {
   return (
     <div className="container mx-auto p-4 max-w-4xl">
       <div className="mb-6 p-4 bg-gray-100 rounded shadow">
-        <p>房间ID: {roomId}</p>
-        <p>当前状态: {roomDetails.status}</p>
-        <p className="flex items-center">
-          我的信息:{" "}
-          <span className="font-medium ml-1">{getCurrentUserNickname()}</span>
-          {myPlayerInfo && (
-            <>
-              <span className="mx-1">
-                ({myPlayerInfo.seat_number || "未入座"}号)
+          <p>房间ID: {roomId}</p>
+          <p>当前状态: {roomDetails.status}</p>
+          <p className="flex items-center">
+            我的信息:{" "}
+            <span className="font-medium ml-1">{getCurrentUserNickname()}</span>
+            {myPlayerInfo && (
+              <>
+                <span className="mx-1">
+                  ({myPlayerInfo.seat_number || "未入座"}号)
+                </span>
+                <span
+                  className={`${
+                    myPlayerInfo.is_alive ? "text-green-600" : "text-red-600"
+                  }`}
+                >
+                  {myPlayerInfo.is_alive ? "(存活)" : "(死亡)"}
+                </span>
+                {myPlayerInfo.role && (
+                  <span className="ml-1">[{myPlayerInfo.role}]</span>
+                )}
+              </>
+            )}
+          </p>
+          <p>
+            房主: <span className="font-medium">{getHostNickname()}</span>
+            {currentUser.id === roomDetails.host_user_id && (
+              <span className="text-xs bg-yellow-200 px-1 rounded ml-1">
+                这是你
               </span>
-              <span
-                className={`${
-                  myPlayerInfo.is_alive ? "text-green-600" : "text-red-600"
-                }`}
-              >
-                {myPlayerInfo.is_alive ? "(存活)" : "(死亡)"}
-              </span>
-              {myPlayerInfo.role && (
-                <span className="ml-1">[{myPlayerInfo.role}]</span>
-              )}
-            </>
+            )}
+          </p>
+          {roomDetails.status !== 'finished' && roomDetails.status !== 'closed' && (
+            <button
+              onClick={handleLeaveRoom}
+              className="mt-4 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded text-sm"
+            >
+              {currentUser.id === roomDetails.host_user_id ? "退出并关闭房间" : "退出房间"}
+            </button>
           )}
-        </p>
-        <p>
-          房主: <span className="font-medium">{getHostNickname()}</span>
-          {currentUser.id === roomDetails.host_user_id && (
-            <span className="text-xs bg-yellow-200 px-1 rounded ml-1">
-              这是你
-            </span>
-          )}
-        </p>
-      </div>
+        </div>
 
       <div className="game-content p-4 border rounded bg-white shadow">
         {roomDetails.status === "lobby" && renderLobby()}
