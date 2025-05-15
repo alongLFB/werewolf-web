@@ -637,14 +637,6 @@ export default function RoomPage() {
 
   const renderLobby = () => (
     <div>
-      <h2 className="text-2xl font-bold mb-4">
-        房间大厅 (邀请码: {roomDetails.invite_code})
-      </h2>
-      <p>
-        模式: {roomDetails.game_settings_choice === "A" ? "模式A" : "模式B"}
-      </p>
-      <p>房主: {getHostNickname()}</p>
-
       <h3 className="text-xl mt-6 mb-2">座位区 (点击选座)</h3>
       <div className="grid grid-cols-3 gap-4 mb-6">
         {seatArrayForRender.map((player, index) => {
@@ -840,8 +832,19 @@ export default function RoomPage() {
   return (
     <div className="container mx-auto p-4 max-w-4xl">
       <div className="mb-6 p-4 bg-gray-100 rounded shadow">
-          <p>房间ID: {roomId}</p>
+          <h2 className="text-2xl font-bold mb-4">房间ID: {roomId} (邀请码: {roomDetails.invite_code})</h2>
+          <p>
+            模式: {roomDetails.game_settings_choice === "A" ? "模式A" : "模式B"}
+          </p>
           <p>当前状态: {roomDetails.status}</p>
+          <p>
+            房主: <span className="font-medium">{getHostNickname()}</span>
+            {currentUser.id === roomDetails.host_user_id && (
+              <span className="text-xs bg-yellow-200 px-1 rounded ml-1">
+                这是你
+              </span>
+            )}
+          </p>
           <p className="flex items-center">
             我的信息:{" "}
             <span className="font-medium ml-1">{getCurrentUserNickname()}</span>
@@ -861,14 +864,6 @@ export default function RoomPage() {
                   <span className="ml-1">[{myPlayerInfo.role}]</span>
                 )}
               </>
-            )}
-          </p>
-          <p>
-            房主: <span className="font-medium">{getHostNickname()}</span>
-            {currentUser.id === roomDetails.host_user_id && (
-              <span className="text-xs bg-yellow-200 px-1 rounded ml-1">
-                这是你
-              </span>
             )}
           </p>
           {roomDetails.status !== 'finished' && roomDetails.status !== 'closed' && (
