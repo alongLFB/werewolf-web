@@ -4,15 +4,15 @@ import { createServerSupabaseClient } from "@/utils/supabase/server";
 
 // 角色配置 (9人标准局)
 const ROLES_CONFIG_9_PLAYERS = [
-  "wolf (狼人)",
-  "wolf (狼人)",
-  "wolf (狼人)",
-  "seer (预言家)",
-  "witch (女巫)",
-  "hunter (猎人)",
-  "villager (村民)",
-  "villager (村民)",
-  "villager (村民)",
+  "wolf",
+  "wolf",
+  "wolf",
+  "seer",
+  "witch",
+  "hunter",
+  "villager",
+  "villager",
+  "villager",
 ];
 
 // 洗牌函数 (Fisher-Yates shuffle)
@@ -207,9 +207,6 @@ export async function POST(
     console.error("API Error /api/rooms/[roomId]/start:", error);
     const errorMessage =
       error instanceof Error ? error.message : "Internal Server Error";
-    return NextResponse.json(
-      { message: errorMessage },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: errorMessage }, { status: 500 });
   }
 }

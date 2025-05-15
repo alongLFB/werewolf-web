@@ -107,7 +107,7 @@ export default function RoomPage() {
       }
 
       const formattedPlayers = playersData.map(
-        (p: any) => // Changed type of p to any, as it's raw data from the query
+        (p: { user_id: string; seat_number: number | null; role?: string | null; is_alive: boolean; is_ready?: boolean; connection_status?: string; profile: { nickname: string } }) =>
           ({
             // Explicitly map all fields from Player interface
             id: p.user_id,
@@ -325,7 +325,7 @@ export default function RoomPage() {
         setRoomChannel(null);
       }
     };
-  }, [roomId, supabase, currentUser]); // currentUser is essential here
+  }, [roomId, supabase, currentUser]); // currentUser and roomChannel are essential here
 
   useEffect(() => {
     if (roomChannel && currentUser && myPlayerInfo) {
@@ -375,9 +375,10 @@ export default function RoomPage() {
           // or handle it via a database trigger or backend function when room status changes.
           alert("房间已关闭。");
           router.push("/");
-        } catch (error: any) {
-          console.error("Error closing room:", error);
-          alert(`关闭房间失败: ${error.message}`);
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : "Error closing room";
+          console.error("Error closing room:", errorMessage);
+          alert(`关闭房间失败: ${errorMessage}`);
         }
       }
     } else {
@@ -395,9 +396,10 @@ export default function RoomPage() {
           }
           alert("您已退出房间。");
           router.push("/");
-        } catch (error: any) {
-          console.error("Error leaving room:", error);
-          alert(`退出房间失败: ${error.message}`);
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : "Error closing room";
+          console.error("Error leaving room:", errorMessage);
+          alert(`退出房间失败: ${errorMessage}`);
         }
       }
     }
