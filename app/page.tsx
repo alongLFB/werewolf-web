@@ -37,9 +37,9 @@ export default function HomePage() {
         } else {
           setProfileNickname('用户'); // Default nickname
         }
-        // if (profileError) {
-        //   console.warn("Error fetching profile for homepage:", profileError.message);
-        // }
+        if (profileError) {
+          console.warn("Error fetching profile for homepage:", profileError.message);
+        }
       } else if (authError) {
         console.error("Error fetching user:", authError.message);
         // router.push("/login"); // Optionally redirect if no user

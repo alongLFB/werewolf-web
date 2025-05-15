@@ -181,6 +181,8 @@ export async function POST(
         police_badge_holder_id: null, // 清空警长
         speaker_order: null, // 清空发言顺序
         game_start_config: gameStartConfig, // 存储游戏开始时的配置
+        current_night_action_phase: "wolf", // Set initial night phase to wolf
+        current_night_acting_role: "wolf", // Set initial acting role to wolf
       })
       .eq("id", roomId);
 

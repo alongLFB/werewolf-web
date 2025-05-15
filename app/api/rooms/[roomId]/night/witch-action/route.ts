@@ -227,6 +227,7 @@ export async function POST(
       .update({
         // current_night_action_phase: 'night_end_resolution', // 一个用于服务器结算的阶段
         // 或者，如果简单点，直接标记夜晚结束，等待一个服务器函数或下一个API调用来结算
+        status: "police_election",
         current_night_action_phase: "finished", // 表示所有角色行动完毕
         current_night_acting_role: null,
         night_actions_log: currentNightLog,
