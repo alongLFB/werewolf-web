@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState } from 'react';
 
@@ -8,7 +8,11 @@ interface JoinRoomFormProps {
   error: string | null;
 }
 
-const JoinRoomForm: React.FC<JoinRoomFormProps> = ({ onSubmit, isLoading, error }) => {
+const JoinRoomForm: React.FC<JoinRoomFormProps> = ({
+  onSubmit,
+  isLoading,
+  error,
+}) => {
   const [inviteCode, setInviteCode] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -21,9 +25,15 @@ const JoinRoomForm: React.FC<JoinRoomFormProps> = ({ onSubmit, isLoading, error 
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-md bg-white p-8 rounded-lg shadow-md">
+    <form
+      onSubmit={handleSubmit}
+      className="w-full max-w-md bg-white p-8 rounded-lg shadow-md"
+    >
       <div className="mb-6">
-        <label htmlFor="invite-code" className="block text-sm font-medium text-gray-700">
+        <label
+          htmlFor="invite-code"
+          className="block text-sm font-medium text-gray-700"
+        >
           房间邀请码 (6位)
         </label>
         <input
@@ -41,6 +51,7 @@ const JoinRoomForm: React.FC<JoinRoomFormProps> = ({ onSubmit, isLoading, error 
       {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
       <button
+        id='confirm-join-room-button'
         type="submit"
         disabled={isLoading || !inviteCode.trim()}
         className="w-full px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"

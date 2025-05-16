@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState } from 'react';
 
@@ -8,7 +8,11 @@ interface CreateRoomFormProps {
   error: string | null;
 }
 
-const CreateRoomForm: React.FC<CreateRoomFormProps> = ({ onSubmit, isLoading, error }) => {
+const CreateRoomForm: React.FC<CreateRoomFormProps> = ({
+  onSubmit,
+  isLoading,
+  error,
+}) => {
   const [gameSettingsChoice, setGameSettingsChoice] = useState<'A' | 'B'>('A');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -17,9 +21,15 @@ const CreateRoomForm: React.FC<CreateRoomFormProps> = ({ onSubmit, isLoading, er
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-md bg-white p-8 rounded-lg shadow-md">
+    <form
+      onSubmit={handleSubmit}
+      className="w-full max-w-md bg-white p-8 rounded-lg shadow-md"
+    >
       <div className="mb-6">
-        <label htmlFor="gameSettings" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="gameSettings"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           游戏模式选择:
         </label>
         <select

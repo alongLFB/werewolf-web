@@ -1,18 +1,18 @@
 // app/api/rooms/[roomId]/start/route.ts
-import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/utils/supabase/server";
+import { NextRequest, NextResponse } from 'next/server';
+import { createServerSupabaseClient } from '@/utils/supabase/server';
 
 // 角色配置 (9人标准局)
 const ROLES_CONFIG_9_PLAYERS = [
-  "wolf",
-  "wolf",
-  "wolf",
-  "seer",
-  "witch",
-  "hunter",
-  "villager",
-  "villager",
-  "villager",
+  'wolf',
+  'wolf',
+  'wolf',
+  'seer',
+  'witch',
+  'hunter',
+  'villager',
+  'villager',
+  'villager',
 ];
 
 // 洗牌函数 (Fisher-Yates shuffle)
@@ -34,7 +34,7 @@ export async function POST(
 
   if (!roomId) {
     return NextResponse.json(
-      { message: "Room ID is required." },
+      { message: 'Room ID is required.' },
       { status: 400 }
     );
   }
@@ -47,48 +47,48 @@ export async function POST(
     } = await supabase.auth.getUser();
     if (userError || !user) {
       return NextResponse.json(
-        { message: "Unauthorized: User not authenticated." },
+        { message: 'Unauthorized: User not authenticated.' },
         { status: 401 }
       );
     }
 
     // 2. 获取房间信息，并验证操作者是否为房主
     const { data: room, error: roomError } = await supabase
-      .from("game_rooms")
-      .select("id, host_user_id, status, game_settings_choice")
-      .eq("id", roomId)
+      .from('game_rooms')
+      .select('id, host_user_id, status, game_settings_choice')
+      .eq('id', roomId)
       .single();
 
     if (roomError || !room) {
       return NextResponse.json(
-        { message: "Room not found or database error." },
+        { message: 'Room not found or database error.' },
         { status: 404 }
       );
     }
 
     if (room.host_user_id !== user.id) {
       return NextResponse.json(
-        { message: "Forbidden: Only the host can start the game." },
+        { message: 'Forbidden: Only the host can start the game.' },
         { status: 403 }
       );
     }
 
-    if (room.status !== "lobby") {
+    if (room.status !== 'lobby') {
       return NextResponse.json(
-        { message: "Game cannot be started. Invalid room status." },
+        { message: 'Game cannot be started. Invalid room status.' },
         { status: 400 }
       );
     }
 
     // 3. 获取房间内所有玩家
     const { data: players, error: playersError } = await supabase
-      .from("room_players")
-      .select("id, user_id, is_ready, seat_number") // room_players.id 是主键, user_id 是关联 users 的
-      .eq("room_id", roomId);
+      .from('room_players')
+      .select('id, user_id, is_ready, seat_number') // room_players.id 是主键, user_id 是关联 users 的
+      .eq('room_id', roomId);
 
     if (playersError || !players) {
       return NextResponse.json(
-        { message: "Failed to fetch players or no players in room." },
+        { message: 'Failed to fetch players or no players in room.' },
         { status: 500 }
       );
     }
@@ -104,14 +104,14 @@ export async function POST(
     }
     if (players.some((p) => p.seat_number === null)) {
       return NextResponse.json(
-        { message: "Cannot start game: Not all players have selected a seat." },
+        { message: 'Cannot start game: Not all players have selected a seat.' },
         { status: 400 }
       );
     }
     // 准备状态检查 (根据你的业务逻辑，是否强制所有人都准备)
     if (players.some((p) => !p.is_ready)) {
       return NextResponse.json(
-        { message: "Cannot start game: Not all players are ready." },
+        { message: 'Cannot start game: Not all players are ready.' },
         { status: 400 }
       );
     }
@@ -138,7 +138,7 @@ export async function POST(
     // 或者，因为我们已经获取了 players，可以直接用循环 update
     for (const update of playerUpdates) {
       const { error: updatePlayerError } = await supabase
-        .from("room_players")
+        .from('room_players')
         .update({
           role: update.role,
           is_alive: update.is_alive,
@@ -148,8 +148,8 @@ export async function POST(
           votes_received_this_round: update.votes_received_this_round,
           wants_to_be_sheriff: update.wants_to_be_sheriff,
         })
-        .eq("room_id", roomId)
-        .eq("user_id", update.user_id); // 确保更新正确的玩家
+        .eq('room_id', roomId)
+        .eq('user_id', update.user_id); // 确保更新正确的玩家
 
       if (updatePlayerError) {
         console.error(
@@ -169,25 +169,25 @@ export async function POST(
     // 6. 更新 game_rooms 表状态
     const gameStartConfig = {
       // 你可以根据 game_settings_choice 决定女巫第一晚能否自救等
-      witch_first_night_can_self_save: room.game_settings_choice === "B", // 假设 B 模式可以
+      witch_first_night_can_self_save: room.game_settings_choice === 'B', // 假设 B 模式可以
     };
 
     const { error: updateRoomError } = await supabase
-      .from("game_rooms")
+      .from('game_rooms')
       .update({
-        status: "in_game_night", // 直接进入夜晚
+        status: 'in_game_night', // 直接进入夜晚
         current_round_number: 1,
         game_started_at: new Date().toISOString(),
         police_badge_holder_id: null, // 清空警长
         speaker_order: null, // 清空发言顺序
         game_start_config: gameStartConfig, // 存储游戏开始时的配置
-        current_night_action_phase: "wolf", // Set initial night phase to wolf
-        current_night_acting_role: "wolf", // Set initial acting role to wolf
+        current_night_action_phase: 'wolf', // Set initial night phase to wolf
+        current_night_acting_role: 'wolf', // Set initial acting role to wolf
       })
-      .eq("id", roomId);
+      .eq('id', roomId);
 
     if (updateRoomError) {
-      console.error("Error updating game room status:", updateRoomError);
+      console.error('Error updating game room status:', updateRoomError);
       return NextResponse.json(
         { message: `Failed to update game status: ${updateRoomError.message}` },
         { status: 500 }
@@ -202,13 +202,13 @@ export async function POST(
     // });
 
     return NextResponse.json(
-      { message: "Game started successfully!" },
+      { message: 'Game started successfully!' },
       { status: 200 }
     );
   } catch (error: unknown) {
-    console.error("API Error /api/rooms/[roomId]/start:", error);
+    console.error('API Error /api/rooms/[roomId]/start:', error);
     const errorMessage =
-      error instanceof Error ? error.message : "Internal Server Error";
+      error instanceof Error ? error.message : 'Internal Server Error';
     return NextResponse.json({ message: errorMessage }, { status: 500 });
   }
 }

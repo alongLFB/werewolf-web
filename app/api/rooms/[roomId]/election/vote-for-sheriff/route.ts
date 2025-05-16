@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/utils/supabase/server";
+import { NextRequest, NextResponse } from 'next/server';
+import { createServerSupabaseClient } from '@/utils/supabase/server';
 
 export async function POST(
   request: NextRequest,
@@ -12,7 +12,7 @@ export async function POST(
 
   if (!candidateUserId) {
     return NextResponse.json(
-      { message: "Candidate User ID is required." },
+      { message: 'Candidate User ID is required.' },
       { status: 400 }
     );
   }
@@ -23,49 +23,49 @@ export async function POST(
       error: userError,
     } = await supabase.auth.getUser();
     if (userError || !user) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
     // 1. Validate room status
     const { data: room, error: roomError } = await supabase
-      .from("game_rooms")
-      .select("status")
-      .eq("id", roomId)
+      .from('game_rooms')
+      .select('status')
+      .eq('id', roomId)
       .single();
 
     if (roomError || !room) {
-      return NextResponse.json({ message: "Room not found" }, { status: 404 });
+      return NextResponse.json({ message: 'Room not found' }, { status: 404 });
     }
-    if (room.status !== "police_election") {
+    if (room.status !== 'police_election') {
       return NextResponse.json(
-        { message: "Not in police election phase" },
+        { message: 'Not in police election phase' },
         { status: 400 }
       );
     }
 
     // 2. Validate voting player status
     const { data: votingPlayer, error: votingPlayerError } = await supabase
-      .from("room_players")
-      .select("is_alive, voted_for_sheriff_candidate_id")
-      .eq("room_id", roomId)
-      .eq("user_id", user.id)
+      .from('room_players')
+      .select('is_alive, voted_for_sheriff_candidate_id')
+      .eq('room_id', roomId)
+      .eq('user_id', user.id)
       .single();
 
     if (votingPlayerError || !votingPlayer) {
       return NextResponse.json(
-        { message: "Player not found in this room" },
+        { message: 'Player not found in this room' },
         { status: 404 }
       );
     }
     if (!votingPlayer.is_alive) {
       return NextResponse.json(
-        { message: "Dead players cannot vote" },
+        { message: 'Dead players cannot vote' },
         { status: 403 }
       );
     }
     if (votingPlayer.voted_for_sheriff_candidate_id) {
       return NextResponse.json(
-        { message: "Player has already voted" },
+        { message: 'Player has already voted' },
         { status: 400 }
       );
     }
@@ -73,15 +73,15 @@ export async function POST(
     // 3. Validate candidate status
     const { data: candidatePlayer, error: candidatePlayerError } =
       await supabase
-        .from("room_players")
-        .select("is_alive, is_candidate_for_sheriff")
-        .eq("room_id", roomId)
-        .eq("user_id", candidateUserId)
+        .from('room_players')
+        .select('is_alive, is_candidate_for_sheriff')
+        .eq('room_id', roomId)
+        .eq('user_id', candidateUserId)
         .single();
 
     if (candidatePlayerError || !candidatePlayer) {
       return NextResponse.json(
-        { message: "Candidate not found" },
+        { message: 'Candidate not found' },
         { status: 404 }
       );
     }
@@ -90,20 +90,20 @@ export async function POST(
       !candidatePlayer.is_candidate_for_sheriff
     ) {
       return NextResponse.json(
-        { message: "Invalid candidate" },
+        { message: 'Invalid candidate' },
         { status: 400 }
       );
     }
 
     // 4. Update player's vote
     const { error: updateError } = await supabase
-      .from("room_players")
+      .from('room_players')
       .update({ voted_for_sheriff_candidate_id: candidateUserId })
-      .eq("room_id", roomId)
-      .eq("user_id", user.id);
+      .eq('room_id', roomId)
+      .eq('user_id', user.id);
 
     if (updateError) {
-      console.error("Error updating player vote:", updateError);
+      console.error('Error updating player vote:', updateError);
       return NextResponse.json(
         { message: `Failed to vote: ${updateError.message}` },
         { status: 500 }
@@ -111,13 +111,13 @@ export async function POST(
     }
 
     return NextResponse.json(
-      { message: "Successfully voted for sheriff." },
+      { message: 'Successfully voted for sheriff.' },
       { status: 200 }
     );
   } catch (error: unknown) {
-    console.error("Error in vote-for-sheriff:", error);
+    console.error('Error in vote-for-sheriff:', error);
     const errorMessage =
-      error instanceof Error ? error.message : "Internal server error";
+      error instanceof Error ? error.message : 'Internal server error';
     return NextResponse.json({ message: errorMessage }, { status: 500 });
   }
 }

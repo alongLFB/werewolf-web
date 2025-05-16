@@ -1,11 +1,11 @@
-"use client"
+'use client';
 
-import Link from "next/link";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { login } from "./actions";
+import Link from 'next/link';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { login } from './actions';
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -33,14 +33,17 @@ export default function LoginPage() {
               />
             </div>
             <div>
-              <label htmlFor="password" className="block mb-1 text-sm font-medium">
+              <label
+                htmlFor="password"
+                className="block mb-1 text-sm font-medium"
+              >
                 密码
               </label>
               <div className="relative">
                 <Input
                   id="password"
                   name="password"
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   required
                   placeholder="请输入密码"
                   className="text-base pr-12"
@@ -49,14 +52,18 @@ export default function LoginPage() {
                 <button
                   type="button"
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 text-xs"
-                  onClick={() => setShowPassword(v => !v)}
+                  onClick={() => setShowPassword((v) => !v)}
                   tabIndex={-1}
                 >
-                  {showPassword ? "隐藏" : "显示"}
+                  {showPassword ? '隐藏' : '显示'}
                 </button>
               </div>
             </div>
-            <Button type="submit" className="w-full text-base py-2">
+            <Button
+              id="login-button"
+              type="submit"
+              className="w-full text-base py-2"
+            >
               登录
             </Button>
           </form>
@@ -64,7 +71,10 @@ export default function LoginPage() {
             <Link href="/register" className="text-blue-600 hover:underline">
               注册账号
             </Link>
-            <Link href="/forgot-password" className="text-blue-600 hover:underline">
+            <Link
+              href="/forgot-password"
+              className="text-blue-600 hover:underline"
+            >
               忘记密码？
             </Link>
           </div>

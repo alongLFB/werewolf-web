@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { createBrowserSupabaseClient } from "@/utils/supabase/client"; // 客户端 Supabase
-import JoinRoomForm from "@/components/JoinRoomForm"; // 假设你把表单逻辑抽离
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { createBrowserSupabaseClient } from '@/utils/supabase/client'; // 客户端 Supabase
+import JoinRoomForm from '@/components/JoinRoomForm'; // 假设你把表单逻辑抽离
 
 export default function JoinRoomPage() {
   const router = useRouter();
@@ -20,14 +20,14 @@ export default function JoinRoomPage() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
-        router.push("/login?message=Please login to join a room");
+        router.push('/login?message=Please login to join a room');
         return;
       }
 
-      const response = await fetch("/api/rooms/join", {
-        method: "POST",
+      const response = await fetch('/api/rooms/join', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ inviteCode: inviteCode.toUpperCase() }),
       });
@@ -35,24 +35,24 @@ export default function JoinRoomPage() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || "加入房间失败");
+        throw new Error(result.message || '加入房间失败');
       }
 
       const { roomId } = result;
       console.log(`成功加入房间！ID: ${roomId}`);
       router.push(`/rooms/${roomId}`);
     } catch (err: unknown) {
-    //   console.error("加入房间错误:", err);
-    //   setError(err.message || "发生未知错误");
+      //   console.error("加入房间错误:", err);
+      //   setError(err.message || "发生未知错误");
 
       if (err instanceof Error) {
-        console.error("加入房间错误:", err);
-        setError(err.message || "发生未知错误");
+        console.error('加入房间错误:', err);
+        setError(err.message || '发生未知错误');
       } else {
-        console.error("加入房间错误:", err);
-        setError("发生未知错误");
+        console.error('加入房间错误:', err);
+        setError('发生未知错误');
       }
-      console.error("加入房间错误:", err);
+      console.error('加入房间错误:', err);
     } finally {
       setIsLoading(false);
     }

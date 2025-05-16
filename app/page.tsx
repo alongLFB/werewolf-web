@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createBrowserSupabaseClient } from "@/utils/supabase/client";
+import { createBrowserSupabaseClient } from '@/utils/supabase/client';
 import type { User } from '@supabase/supabase-js';
-import Image from "next/image";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+import Image from 'next/image';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
 
 const supabase = createBrowserSupabaseClient();
 
@@ -19,7 +19,8 @@ export default function HomePage() {
 
   useEffect(() => {
     const fetchUserAndProfile = async () => {
-      const { data: authData, error: authError } = await supabase.auth.getUser();
+      const { data: authData, error: authError } =
+        await supabase.auth.getUser();
       if (authData.user) {
         setUser(authData.user);
         // Fetch profile from 'profiles' table
@@ -38,10 +39,13 @@ export default function HomePage() {
           setProfileNickname('用户'); // Default nickname
         }
         if (profileError) {
-          console.warn("Error fetching profile for homepage:", profileError.message);
+          console.warn(
+            'Error fetching profile for homepage:',
+            profileError.message
+          );
         }
       } else if (authError) {
-        console.error("Error fetching user:", authError.message);
+        console.error('Error fetching user:', authError.message);
         // router.push("/login"); // Optionally redirect if no user
       }
     };
@@ -51,7 +55,7 @@ export default function HomePage() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    router.push("/login");
+    router.push('/login');
   };
 
   return (
@@ -59,7 +63,13 @@ export default function HomePage() {
       {/* 顶部栏 */}
       <header className="flex items-center justify-between px-4 py-3 bg-white shadow">
         <div className="flex items-center gap-2">
-          <Image src="/werewolf-title.png" alt="狼人杀" width={40} height={40} className="rounded" />
+          <Image
+            src="/werewolf-title.png"
+            alt="狼人杀"
+            width={40}
+            height={40}
+            className="rounded"
+          />
           <span className="text-xl font-bold">线下狼人杀</span>
         </div>
         <div className="relative">
@@ -106,17 +116,25 @@ export default function HomePage() {
           className="my-8 rounded-lg shadow"
         />
         <h1 className="text-2xl font-bold mb-2">
-          欢迎，{profileNickname || (user?.user_metadata?.nickname || '用户')}！
+          欢迎，{profileNickname || user?.user_metadata?.nickname || '用户'}！
         </h1>
         {/* <p className="mb-8 text-gray-600">邮箱：{profileemail || user?.email}</p> */}
         <br></br>
         {/* 房间操作按钮 */}
         <div className="flex gap-4">
           <Link href="/join-room">
-            <Button className="px-8 py-2 text-base">加入房间</Button>
+            <Button id="join-room-button" className="px-8 py-2 text-base">
+              加入房间
+            </Button>
           </Link>
           <Link href="/create-room">
-            <Button variant="outline" className="px-8 py-2 text-base">创建房间</Button>
+            <Button
+              id="create-room"
+              variant="outline"
+              className="px-8 py-2 text-base"
+            >
+              创建房间
+            </Button>
           </Link>
         </div>
       </main>

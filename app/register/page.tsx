@@ -1,27 +1,27 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { createBrowserSupabaseClient } from "@/utils/supabase/client";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { createBrowserSupabaseClient } from '@/utils/supabase/client';
 
 const supabase = createBrowserSupabaseClient();
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [nickname, setNickname] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [email, setEmail] = useState('');
+  const [nickname, setNickname] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setError('');
     setLoading(true);
     const { error } = await supabase.auth.signUp({
       email,
@@ -33,7 +33,7 @@ export default function RegisterPage() {
     setLoading(false);
 
     if (error) setError(error.message);
-    else router.push("/");
+    else router.push('/');
   };
 
   return (
@@ -91,7 +91,7 @@ export default function RegisterPage() {
                 <Input
                   id="password"
                   name="password"
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   required
                   placeholder="请输入密码"
                   className="text-base pr-12"
@@ -107,7 +107,7 @@ export default function RegisterPage() {
                   tabIndex={-1}
                   disabled={loading}
                 >
-                  {showPassword ? "隐藏" : "显示"}
+                  {showPassword ? '隐藏' : '显示'}
                 </button>
               </div>
             </div>
@@ -116,7 +116,7 @@ export default function RegisterPage() {
               className="w-full text-base py-2"
               disabled={loading}
             >
-              {loading ? "注册中..." : "注册"}
+              {loading ? '注册中...' : '注册'}
             </Button>
             {error && (
               <p className="text-red-500 text-center text-sm">{error}</p>

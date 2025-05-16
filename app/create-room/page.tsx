@@ -1,4 +1,4 @@
-"use client"; // 标记为客户端组件，因为有交互和状态
+'use client'; // 标记为客户端组件，因为有交互和状态
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation'; // 使用 next/navigation
@@ -16,14 +16,17 @@ export default function CreateRoomPage() {
     setError(null);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         // 可以重定向到登录页或显示错误
         router.push('/login?message=Please login to create a room');
         return;
       }
 
-      const response = await fetch('/api/rooms/create', { // API 路由地址
+      const response = await fetch('/api/rooms/create', {
+        // API 路由地址
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -40,7 +43,6 @@ export default function CreateRoomPage() {
       const { roomId, inviteCode } = result;
       console.log(`房间创建成功！ID: ${roomId}, 邀请码: ${inviteCode}`);
       router.push(`/rooms/${roomId}`); // 跳转到房间
-
     } catch (err: unknown) {
       if (err instanceof Error) {
         console.error('创建房间错误:', err);
